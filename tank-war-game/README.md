@@ -352,8 +352,8 @@ spring:
 ### 数据库配置说明
 
 - **数据库名称**: `tankwar`
-- **用户名**: `root`
-- **密码**: `1234`
+- **用户名**: `用户名`
+- **密码**: `密码`
 - **自动创建数据库**: 通过 `createDatabaseIfNotExist=true` 参数实现
 - **自动建表**: 通过 Spring Data JPA 的 `ddl-auto: update` 配置实现
 

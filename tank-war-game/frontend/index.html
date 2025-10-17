@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 多人在线坦克大战 🔥</title>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+            overflow: hidden;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* 游戏容器 */
+        .game-container {
+            position: relative;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* 标题样式 */
+        h1 {
+            margin: 0 0 20px 0;
+            font-size: 3em;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            background-size: 200% 200%;
+            animation: gradientText 3s ease infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+        }
+        
+        @keyframes gradientText {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* 游戏画布 */
+        #gameCanvas {
+            border: 3px solid #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 30px rgba(78, 205, 196, 0.3);
+            background: #2c3e50;
+            transition: all 0.3s ease;
+        }
+        
+        #gameCanvas:hover {
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.6), 0 0 40px rgba(78, 205, 196, 0.5);
+        }
+        
+        /* 控制说明 */
+        .controls {
+            margin-top: 15px;
+            font-size: 16px;
+            opacity: 0.9;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* UI面板通用样式 */
+        .ui-panel, .score-board, .chat-panel {
+            background: rgba(0, 0, 0, 0.7);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .ui-panel:hover, .score-board:hover, .chat-panel:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7), 0 0 20px rgba(78, 205, 196, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        /* 玩家列表 */
+        .ui-panel {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            min-width: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .ui-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .ui-panel::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        
+        .ui-panel::-webkit-scrollbar-thumb {
+            background: rgba(78, 205, 196, 0.6);
+            border-radius: 3px;
+        }
+        
+        .ui-panel h3,
+        .score-board h3,
+        .chat-panel h3 {
+            margin: 0 0 12px 0;
+            color: #4ecdc4;
+            font-size: 1.2em;
+            text-align: center;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        
+        .player-list {
+            margin-bottom: 15px;
+        }
+        
+        .player-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+        
+        .player-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            padding-left: 5px;
+            border-radius: 4px;
+        }
+        
+        /* 聊天面板 */
+        .chat-panel {
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            width: 280px;
+            max-height: 200px;
+        }
+        
+        .chat-messages {
+            height: 140px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(78, 205, 196, 0.6);
+            border-radius: 3px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(78, 205, 196, 0.8);
+        }
+        
+        .chat-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid #4ecdc4;
+            box-shadow: 0 0 10px rgba(78, 205, 196, 0.3);
+        }
+        
+        .chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        /* 登录面板 */
+        .login-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(22, 33, 62, 0.95));
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 50px rgba(78, 205, 196, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        .login-panel h2 {
+            margin-bottom: 25px;
+            color: #4ecdc4;
+            font-size: 1.8em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .login-input {
+            width: 250px;
+            padding: 12px 15px;
+            margin: 15px auto;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 16px;
+            display: block;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .login-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid #4ecdc4;
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.4);
+            transform: scale(1.02);
+        }
+        
+        .login-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .login-button {
+            padding: 12px 30px;
+            margin: 20px auto;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            background-size: 200% 200%;
+            animation: buttonGradient 3s ease infinite;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            display: block;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes buttonGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .login-button:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 20px rgba(78, 205, 196, 0.5);
+        }
+        
+        .login-button:active {
+            transform: scale(1.05);
+        }
+        
+        /* 隐藏类 */
+        .hidden {
+            display: none;
+        }
+        
+        /* 排行榜 */
+        .score-board {
+            position: absolute;
+            top: 330px;
+            right: 20px;
+            min-width: 180px;
+        }
+        
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 6px 0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+        
+        .score-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .ui-panel, .score-board, .chat-panel {
+                transform: scale(0.85);
+            }
+            
+            .ui-panel {
+                top: 5px;
+                right: 5px;
+            }
+            
+            .score-board {
+                top: 290px;
+                right: 5px;
+            }
+            
+            .chat-panel {
+                bottom: 5px;
+                right: 5px;
+            }
+        }
+        
+        /* 游戏画布 */
+        #gameCanvas {
+            border: 3px solid #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 30px rgba(78, 205, 196, 0.3);
+            background: #2c3e50;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* UI面板通用样式 - 确保UI面板在画布上方 */
+        .ui-panel, .score-board, .chat-panel {
+            z-index: 2;
+        }
+        
+        /* 加载动画 */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            color: #4ecdc4;
+            display: none;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        /* 加载动画 */
+.loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
+}
+
+.loading.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.loading::before {
+    content: '';
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top: 4px solid #4ecdc4;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading::after {
+    content: attr(data-text);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* 游戏状态提示 */
+.status {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50px);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
+}
+
+        .status.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .status.success {
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.9), rgba(39, 174, 96, 0.9));
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+        }
+
+        .status.error {
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.9), rgba(203, 67, 53, 0.9));
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .status.info {
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.9), rgba(41, 128, 185, 0.9));
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🚗 多人在线坦克大战 🚗</h1>
+        
+        <!-- 登录面板 -->
+        <div id="loginPanel" class="login-panel">
+            <h2>欢迎来到坦克大战！</h2>
+            <input type="text" id="playerName" class="login-input" placeholder="请输入您的昵称" maxlength="10">
+            <br>
+            <button id="loginButton" class="login-button">开始游戏</button>
+        </div>
+        
+        <!-- 游戏画布 -->
+        <canvas id="gameCanvas" width="800" height="600" class="hidden"></canvas>
+        
+        <!-- 游戏UI面板 -->
+        <div id="gameUI" class="hidden">
+            <!-- 玩家列表 -->
+            <div class="ui-panel">
+                <h3>👥 在线玩家</h3>
+                <div id="playerList" class="player-list"></div>
+            </div>
+            
+            <!-- 排行榜 -->
+            <div class="score-board">
+                <h3>🏆 排行榜</h3>
+                <div id="scoreList"></div>
+            </div>
+            
+            <!-- 聊天面板 -->
+            <div class="chat-panel">
+                <h3>💬 聊天</h3>
+                <div id="chatMessages" class="chat-messages"></div>
+                <input type="text" id="chatInput" class="chat-input" placeholder="输入消息..." maxlength="50">
+            </div>
+        </div>
+        
+        <div class="controls">
+            <p>🎮 操作说明：WASD移动，空格键射击，Enter发送消息</p>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>

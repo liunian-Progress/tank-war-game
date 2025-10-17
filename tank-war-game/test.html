@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>坦克大战游戏 - 测试页面</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .game-section {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .game-info {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .controls {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+        }
+        
+        .log {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 15px 0;
+        }
+        
+        .input-group {
+            margin: 10px 0;
+        }
+        
+        input {
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            width: 200px;
+        }
+        
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .feature-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #4ecdc4;
+        }
+        
+        .feature-card h3 {
+            margin-top: 0;
+            color: #4ecdc4;
+        }
+        
+        .api-section {
+            margin-top: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .api-endpoint {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 5px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 多人在线坦克大战游戏</h1>
+        
+        <div class="game-section">
+            <div class="game-info">
+                <h3>🎮 游戏信息</h3>
+                <div class="status" id="gameStatus">
+                    状态: 未连接<br>
+                    玩家数: 0<br>
+                    房间数: 0
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" id="playerName" placeholder="输入玩家昵称" maxlength="10">
+                    <button onclick="connectToGame()">连接游戏</button>
+                </div>
+                
+                <div class="button-group">
+                    <button onclick="createRoom()">创建房间</button>
+                    <button onclick="quickMatch()">快速匹配</button>
+                    <button onclick="getLeaderboard()">查看排行榜</button>
+                    <button onclick="getRoomList()">房间列表</button>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <h3>🎯 游戏控制</h3>
+                <div class="button-group">
+                    <button onclick="testMove('up')">↑ 向上</button>
+                    <button onclick="testMove('down')">↓ 向下</button>
+                    <button onclick="testMove('left')">← 向左</button>
+                    <button onclick="testMove('right')">→ 向右</button>
+                </div>
+                
+                <div class="button-group">
+                    <button onclick="testShoot()">🔫 射击</button>
+                    <button onclick="testChat()">💬 发送消息</button>
+                    <button onclick="disconnect()">断开连接</button>
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" id="chatMessage" placeholder="输入聊天消息" maxlength="50">
+                </div>
+            </div>
+        </div>
+        
+        <div class="log" id="messageLog">
+            <div>📝 系统日志:</div>
+        </div>
+        
+        <div class="feature-list">
+            <div class="feature-card">
+                <h3>🎮 核心功能</h3>
+                <ul>
+                    <li>多人在线实时对战</li>
+                    <li>WebSocket实时通信</li>
+                    <li>Canvas游戏画面渲染</li>
+                    <li>碰撞检测系统</li>
+                    <li>生命值和得分系统</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <h3>🏠 房间系统</h3>
+                <ul>
+                    <li>房间创建和管理</li>
+                    <li>快速匹配功能</li>
+                    <li>房间状态监控</li>
+                    <li>玩家进出通知</li>
+                    <li>房间列表查看</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <h3>💬 社交功能</h3>
+                <ul>
+                    <li>实时聊天系统</li>
+                    <li>多种排行榜</li>
+                    <li>玩家统计数据</li>
+                    <li>聊天历史记录</li>
+                    <li>系统消息通知</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <h3>🗺️ 地图系统</h3>
+                <ul>
+                    <li>多种地图类型</li>
+                    <li>随机障碍物生成</li>
+                    <li>道具系统</li>
+                    <li>基地保护机制</li>
+                    <li>可破坏环境</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="api-section">
+            <h3>🔌 API接口测试</h3>
+            <div class="api-endpoint">GET /api/rooms - 获取房间列表</div>
+            <div class="api-endpoint">POST /api/rooms/create - 创建房间</div>
+            <div class="api-endpoint">POST /api/rooms/quick-match - 快速匹配</div>
+            <div class="api-endpoint">GET /api/leaderboard/all - 获取排行榜</div>
+            <div class="api-endpoint">GET /api/chat/history - 获取聊天历史</div>
+            <div class="api-endpoint">WebSocket: ws://localhost:8080/tank-war</div>
+        </div>
+    </div>
+    
+    <script>
+        let socket = null;
+        let playerId = null;
+        let playerName = '';
+        
+        function log(message) {
+            const logElement = document.getElementById('messageLog');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function updateStatus(status) {
+            document.getElementById('gameStatus').innerHTML = status;
+        }
+        
+        function connectToGame() {
+            playerName = document.getElementById('playerName').value.trim();
+            if (!playerName) {
+                alert('请输入玩家昵称！');
+                return;
+            }
+            
+            try {
+                socket = new WebSocket('ws://localhost:8080/tank-war');
+                
+                socket.onopen = function() {
+                    log('✅ 连接到服务器成功');
+                    updateStatus(`状态: 已连接<br>玩家: ${playerName}<br>房间: 等待中`);
+                    
+                    // 发送加入游戏消息
+                    sendMessage({
+                        type: 'join',
+                        playerName: playerName
+                    });
+                };
+                
+                socket.onmessage = function(event) {
+                    const message = JSON.parse(event.data);
+                    handleServerMessage(message);
+                };
+                
+                socket.onclose = function() {
+                    log('❌ 与服务器连接断开');
+                    updateStatus('状态: 连接断开<br>玩家: 无<br>房间: 无');
+                };
+                
+                socket.onerror = function(error) {
+                    log('❌ WebSocket连接错误: ' + error);
+                };
+                
+            } catch (error) {
+                log('❌ 连接失败: ' + error.message);
+                alert('无法连接到服务器，请确保服务器已启动！');
+            }
+        }
+        
+        function sendMessage(message) {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify(message));
+                log('📤 发送: ' + JSON.stringify(message));
+            } else {
+                log('❌ 无法发送消息，连接未建立');
+            }
+        }
+        
+        function handleServerMessage(message) {
+            log('📥 接收: ' + JSON.stringify(message));
+            
+            switch (message.type) {
+                case 'playerId':
+                    playerId = message.playerId;
+                    log('🎮 获得玩家ID: ' + playerId);
+                    break;
+                case 'playerJoined':
+                    log('👋 玩家加入: ' + message.playerName);
+                    break;
+                case 'playerLeft':
+                    log('👋 玩家离开: ' + message.playerName);
+                    break;
+                case 'chatMessage':
+                    log('💬 ' + message.playerName + ': ' + message.text);
+                    break;
+                case 'gameState':
+                    log('🎯 游戏状态更新');
+                    break;
+            }
+        }
+        
+        function createRoom() {
+            if (!socket) {
+                alert('请先连接游戏！');
+                return;
+            }
+            
+            fetch('/api/rooms/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: playerName + '的房间',
+                    maxPlayers: 8
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                log('🏠 房间创建成功: ' + data.name);
+            })
+            .catch(error => {
+                log('❌ 创建房间失败: ' + error);
+            });
+        }
+        
+        function quickMatch() {
+            if (!socket) {
+                alert('请先连接游戏！');
+                return;
+            }
+            
+            fetch('/api/rooms/quick-match', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    playerName: playerName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    log('🎯 快速匹配成功');
+                } else {
+                    log('❌ 快速匹配失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                log('❌ 快速匹配失败: ' + error);
+            });
+        }
+        
+        function getLeaderboard() {
+            fetch('/api/leaderboard/all')
+            .then(response => response.json())
+            .then(data => {
+                log('🏆 排行榜数据: ' + JSON.stringify(data));
+            })
+            .catch(error => {
+                log('❌ 获取排行榜失败: ' + error);
+            });
+        }
+        
+        function getRoomList() {
+            fetch('/api/rooms')
+            .then(response => response.json())
+            .then(data => {
+                log('🏠 房间列表: ' + JSON.stringify(data));
+            })
+            .catch(error => {
+                log('❌ 获取房间列表失败: ' + error);
+            });
+        }
+        
+        function testMove(direction) {
+            if (!socket || !playerId) {
+                alert('请先连接游戏！');
+                return;
+            }
+            
+            const directions = {
+                'up': 0,
+                'right': 1,
+                'down': 2,
+                'left': 3
+            };
+            
+            sendMessage({
+                type: 'move',
+                playerId: playerId,
+                data: {
+                    x: 100,
+                    y: 100,
+                    direction: directions[direction]
+                }
+            });
+        }
+        
+        function testShoot() {
+            if (!socket || !playerId) {
+                alert('请先连接游戏！');
+                return;
+            }
+            
+            sendMessage({
+                type: 'shoot',
+                playerId: playerId,
+                data: {
+                    x: 100,
+                    y: 100,
+                    direction: 0
+                }
+            });
+        }
+        
+        function testChat() {
+            const message = document.getElementById('chatMessage').value.trim();
+            if (!message) {
+                alert('请输入聊天消息！');
+                return;
+            }
+            
+            if (!socket || !playerId) {
+                alert('请先连接游戏！');
+                return;
+            }
+            
+            sendMessage({
+                type: 'chat',
+                playerId: playerId,
+                playerName: playerName,
+                text: message
+            });
+            
+            document.getElementById('chatMessage').value = '';
+        }
+        
+        function disconnect() {
+            if (socket) {
+                socket.close();
+                socket = null;
+                playerId = null;
+                log('🔌 主动断开连接');
+            }
+        }
+        
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 坦克大战游戏测试页面已加载');
+            log('💡 提示: 请先启动后端服务器，然后输入昵称连接游戏');
+        });
+    </script>
+</body>
+</html>

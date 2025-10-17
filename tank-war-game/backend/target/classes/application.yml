@@ -1,0 +1,40 @@
+server:
+  port: 8080
+  address: 0.0.0.0  # 绑定到所有网络接口，支持远程连接
+
+spring:
+  application:
+    name: tank-war-server
+  
+  # MySQL数据库配置
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/tankwar?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 1234
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+# 日志配置
+logging:
+  level:
+    com.tankwar.server: DEBUG
+    org.springframework.web.socket: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# 游戏配置
+game:
+  max-players: 8
+  map-width: 800
+  map-height: 600
+  bullet-speed: 8.0
+  player-speed: 3.0
+  bullet-damage: 25

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>坦克大战游戏测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .test-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .test-button:hover {
+            background-color: #0056b3;
+        }
+        .test-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        #gameFrame {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 坦克大战游戏测试页面</h1>
+        
+        <div id="status" class="status info">
+            准备测试游戏功能...
+        </div>
+        
+        <div>
+            <button class="test-button" onclick="testServerConnection()">测试服务器连接</button>
+            <button class="test-button" onclick="testWebSocketConnection()">测试WebSocket连接</button>
+            <button class="test-button" onclick="openGame()">打开游戏</button>
+            <button class="test-button" onclick="clearStatus()">清除状态</button>
+        </div>
+        
+        <div id="gameFrame" style="display: none;"></div>
+        
+        <h2>测试说明</h2>
+        <ul>
+            <li><strong>测试服务器连接</strong>：检查HTTP服务器是否正常运行</li>
+            <li><strong>测试WebSocket连接</strong>：检查WebSocket服务器是否正常运行</li>
+            <li><strong>打开游戏</strong>：在新窗口中打开游戏页面</li>
+        </ul>
+        
+        <h2>游戏操作说明</h2>
+        <ul>
+            <li><strong>WASD</strong> 或 <strong>方向键</strong>：移动坦克</li>
+            <li><strong>空格键</strong>：射击</li>
+            <li><strong>Enter键</strong>：发送聊天消息</li>
+        </ul>
+    </div>
+
+    <script>
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        function clearStatus() {
+            updateStatus('准备测试游戏功能...', 'info');
+            document.getElementById('gameFrame').style.display = 'none';
+        }
+
+        async function testServerConnection() {
+            updateStatus('正在测试HTTP服务器连接...', 'info');
+            
+            try {
+                const response = await fetch('http://localhost:8080');
+                if (response.ok) {
+                    updateStatus('✅ HTTP服务器连接成功！', 'success');
+                } else {
+                    updateStatus(`❌ HTTP服务器响应异常: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                updateStatus(`❌ HTTP服务器连接失败: ${error.message}`, 'error');
+            }
+        }
+
+        function testWebSocketConnection() {
+            updateStatus('正在测试WebSocket连接...', 'info');
+            
+            try {
+                const ws = new WebSocket('ws://localhost:8080/tank-war');
+                
+                ws.onopen = function() {
+                    updateStatus('✅ WebSocket连接成功！', 'success');
+                    ws.close();
+                };
+                
+                ws.onerror = function(error) {
+                    updateStatus(`❌ WebSocket连接失败: ${error}`, 'error');
+                };
+                
+                ws.onclose = function() {
+                    console.log('WebSocket连接已关闭');
+                };
+                
+                // 设置超时
+                setTimeout(() => {
+                    if (ws.readyState === WebSocket.CONNECTING) {
+                        ws.close();
+                        updateStatus('❌ WebSocket连接超时', 'error');
+                    }
+                }, 5000);
+                
+            } catch (error) {
+                updateStatus(`❌ WebSocket连接异常: ${error.message}`, 'error');
+            }
+        }
+
+        function openGame() {
+            updateStatus('正在打开游戏...', 'info');
+            
+            try {
+                // 在新窗口中打开游戏
+                const gameWindow = window.open('http://localhost:8080', '_blank');
+                if (gameWindow) {
+                    updateStatus('✅ 游戏已在新窗口中打开！', 'success');
+                } else {
+                    updateStatus('❌ 无法打开游戏窗口，请检查弹窗拦截设置', 'error');
+                }
+            } catch (error) {
+                updateStatus(`❌ 打开游戏失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载完成后自动测试服务器连接
+        window.addEventListener('load', function() {
+            setTimeout(testServerConnection, 1000);
+        });
+    </script>
+</body>
+</html>
+
